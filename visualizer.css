@@ -166,3 +166,48 @@ button:active {
     font-weight: bold;
     color: #667eea;
 }
+
+.layers-list {
+    margin-top: 15px;
+}
+
+.layer-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    padding: 8px 12px;
+    margin: 5px 0;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.layer-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.color-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px #ddd;
+}
+
+.remove-layer-btn {
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.remove-layer-btn:hover {
+    background: #ff5252;
+    transform: none;
+    box-shadow: none;
+}

@@ -1,5 +1,13 @@
 let map;
-let currentLayer;
+let layers = [];
+let layerCounter = 0;
+
+// Color palette for different layers
+const colors = [
+    '#00ff00', '#ff0000', '#0000ff', '#ffff00', '#ff00ff', 
+    '#00ffff', '#ff8000', '#8000ff', '#ff0080', '#80ff00',
+    '#0080ff', '#ff8080', '#80ff80', '#8080ff', '#ffff80'
+];
 
 // Initialize the map
 function initMap() {
@@ -42,8 +50,49 @@ function detectCoordinateFormat(coords) {
     return lonLatCount > latLonCount ? 'lon-lat' : 'lat-lon';
 }
 
-        // Plot coordinates on the map
-        function plotCoordinates() {
+// Remove a specific layer
+function removeLayer(layerId) {
+    const layerIndex = layers.findIndex(layer => layer.id === layerId);
+    if (layerIndex !== -1) {
+        map.removeLayer(layers[layerIndex].layer);
+        layers.splice(layerIndex, 1);
+        updateStatistics();
+        showMessage(`Layer ${layerId} removed!`, 'success');
+    }
+}
+
+// Update statistics panel
+function updateStatistics() {
+    const totalPoints = layers.reduce((sum, layer) => sum + layer.pointCount, 0);
+    document.getElementById('layerCount').textContent = layers.length;
+    document.getElementById('totalPoints').textContent = totalPoints;
+    
+    const layersList = document.getElementById('layersList');
+    layersList.innerHTML = '<h4>Active Layers:</h4>';
+    
+    if (layers.length === 0) {
+        document.getElementById('infoPanel').style.display = 'none';
+        return;
+    }
+    
+    layers.forEach(layer => {
+        const layerDiv = document.createElement('div');
+        layerDiv.className = 'layer-item';
+        layerDiv.innerHTML = `
+            <div class="layer-info">
+                <div class="color-indicator" style="background-color: ${layer.color}"></div>
+                <span>Layer ${layer.id} (${layer.pointCount} points)</span>
+            </div>
+            <button class="remove-layer-btn" onclick="removeLayer(${layer.id})">Remove</button>
+        `;
+        layersList.appendChild(layerDiv);
+    });
+    
+    document.getElementById('infoPanel').style.display = 'block';
+}
+
+// Plot coordinates on the map
+function plotCoordinates() {
     const input = document.getElementById('coordinateInput').value.trim();
     
     if (!input) {
@@ -65,11 +114,6 @@ function detectCoordinateFormat(coords) {
                 showMessage(`Invalid coordinate at index ${i}. Each coordinate must be an array of [x, y].`, 'error');
                 return;
             }
-        }
-        
-        // Clear existing layer
-        if (currentLayer) {
-            map.removeLayer(currentLayer);
         }
         
         // Detect format
@@ -105,34 +149,56 @@ function detectCoordinateFormat(coords) {
             return;
         }
         
+        // Get color for this layer
+        const color = colors[layerCounter % colors.length];
+        layerCounter++;
+        
         // Create polyline connecting the points
         const polyline = L.polyline(polylinePoints, {
-            color: '#00ff00',
-            weight: 2,
+            color: color,
+            weight: 3,
             opacity: 0.8
         });
         
-        // Add only the polyline to map
-        currentLayer = polyline.addTo(map);
+        // Add polyline to map
+        polyline.addTo(map);
         
-        // Fit map to bounds
-        if (bounds.length > 1) {
-            map.fitBounds(bounds, { padding: [10, 10] });
-        } else if (bounds.length === 1) {
-            map.setView(bounds[0], 15);
+        // Store layer information
+        layers.push({
+            id: layerCounter,
+            layer: polyline,
+            color: color,
+            pointCount: validPointCount,
+            format: format
+        });
+        
+        // Fit map to include all layers
+        const allBounds = [];
+        layers.forEach(layer => {
+            layer.layer.getLatLngs().forEach(latlng => {
+                allBounds.push([latlng.lat, latlng.lng]);
+            });
+        });
+        
+        if (allBounds.length > 1) {
+            map.fitBounds(allBounds, { padding: [10, 10] });
+        } else if (allBounds.length === 1) {
+            map.setView(allBounds[0], 15);
         }
         
-        // Show statistics
-        document.getElementById('pointCount').textContent = validPointCount;
-        document.getElementById('coordFormat').textContent = format === 'lon-lat' ? 'Lon, Lat' : 'Lat, Lon';
-        document.getElementById('infoPanel').style.display = 'block';
+        // Update statistics
+        updateStatistics();
         
-        showMessage(`Successfully plotted path with ${validPointCount} points!`, 'success');
+        showMessage(`Successfully plotted Layer ${layerCounter} with ${validPointCount} points in ${color}!`, 'success');
+        
+        // Clear input for next layer
+        document.getElementById('coordinateInput').value = '';
         
     } catch (error) {
         showMessage(`Error parsing JSON: ${error.message}`, 'error');
     }
 }
+
 // Load example data
 function loadExample() {
     const exampleData = [
@@ -152,15 +218,16 @@ function loadExample() {
     showMessage('Example data loaded! Click "Plot Coordinates" to visualize.', 'success');
 }
 
-// Clear the map
+// Clear all layers from the map
 function clearMap() {
-    if (currentLayer) {
-        map.removeLayer(currentLayer);
-        currentLayer = null;
-    }
+    layers.forEach(layer => {
+        map.removeLayer(layer.layer);
+    });
+    layers = [];
+    layerCounter = 0;
     document.getElementById('coordinateInput').value = '';
     document.getElementById('infoPanel').style.display = 'none';
-    showMessage('Map cleared!', 'success');
+    showMessage('All layers cleared!', 'success');
 }
 
 // Initialize map when page loads
