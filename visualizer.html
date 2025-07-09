@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coordinate Points Mapper</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <link rel="stylesheet" href="/visualizer.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ Coordinate Points Mapper</h1>
+            <p>Visualize your coordinate data on an interactive map</p>
+        </div>
+        
+        <div class="content">
+            <div class="format-info">
+                <h3>Supported Formats</h3>
+                <p>Enter your coordinates in JSON format. Supported formats:</p>
+                <ul>
+                    <li><strong>Longitude, Latitude:</strong> <code>[[-122.541, 40.879], [-122.541, 40.880]]</code></li>
+                    <li><strong>Latitude, Longitude:</strong> <code>[[40.879, -122.541], [40.880, -122.541]]</code></li>
+                </ul>
+                <p>The system will auto-detect the format based on typical coordinate ranges.</p>
+            </div>
+            
+            <div class="input-section">
+                <label for="coordinateInput">Enter JSON coordinate data:</label>
+                <textarea id="coordinateInput" placeholder='Enter coordinates in JSON format, e.g.:
+[
+  [-122.541347576002, 40.8797068810007],
+  [-122.541319702002, 40.8797905080007],
+  [-122.541320089002, 40.8797907340007]
+]'></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button onclick="plotCoordinates()">Plot Coordinates</button>
+                <button onclick="loadExample()" class="example-btn">Load Example</button>
+                <button onclick="clearMap()" class="clear-btn">Clear Map</button>
+            </div>
+            
+            <div id="message"></div>
+            
+            <div id="map"></div>
+            
+            <div class="info-panel" id="infoPanel" style="display: none;">
+                <h3>Map Statistics</h3>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="pointCount">0</div>
+                        <div>Points Plotted</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="coordFormat">-</div>
+                        <div>Detected Format</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="/visualizer.js"></script>
+</body>
+</html>
